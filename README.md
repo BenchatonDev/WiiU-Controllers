@@ -1,4 +1,4 @@
-<h1 align="center">Wii U Controller <br>
+<h1 align="center">Wii U Controllers <br>
     <img src="https://github.com/rolandoislas/drc-sim/blob/master/resources/image/icon.gif"/>
     <br>
     <img src="https://img.shields.io/github/license/BenchatonDev/WiiU-Controllers"/>
@@ -12,7 +12,7 @@ accelerometer, etc
 
 # Stuff Planned 
  - Make a header to simplify the use of more complex bits and bobs like The Wii Mote speaker and rumble
- - Make a header to allow specific controller channels to be merge and output a single input object
+ - Make a header to allow specific controller channels to be merged and output a single input object
 
 # Credits
 - [DevkitPro](https://github.com/devkitPro) They are awsome peeps ❤️, without them most Nintendo homebrew wouldn't exist
