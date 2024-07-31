@@ -7,7 +7,15 @@ class Input
 {
     public:
 
-        enum eButtons {
+        enum ControllerTypes {
+            DRC         = 0,
+            PRO         = 1,
+            WII         = 2,
+            WII_NUNCHUK = 3,
+            WII_CLASSIC = 4
+        };
+
+        enum Buttons {
             BUTTON_NONE   = 0x0000,
             VPAD_TOUCH    = 0x80000000,
             BUTTON_Z      = 0x20000,
@@ -34,12 +42,12 @@ class Input
             STICK_R_RIGHT = 0x02000000,
             STICK_R_UP    = 0x01000000,
             STICK_R_DOWN  = 0x00800000,
-            STICK_R_CLICK = 0x00020000, //0x0001000
+            STICK_R_CLICK = 0x00020000,
             STICK_L_LEFT  = 0x40000000,
             STICK_L_RIGHT = 0x20000000,
             STICK_L_UP    = 0x10000000,
             STICK_L_DOWN  = 0x08000000,
-            STICK_L_CLICK = 0x00040000  //0x00020000
+            STICK_L_CLICK = 0x00040000
         };
 
         //Constructor
@@ -51,18 +59,26 @@ class Input
         // Setting up structs for sticks / gyro / pointing device data
         struct Vector2D
         {
-            float x, y;
+            float x;
+
+            float y;
         };
 
         struct Vector3D
         {
-            float x, y, z;
+            float x;
+
+            float y;
+
+            float z;
         };
 
         // Sruct containing the controller data
         typedef struct ControllerData
         {
             bool Connected;
+            int ControllerType;
+            bool ValidPointerPos;
 
             uint32_t BtnHeld;
             uint32_t BtnDown;
@@ -72,49 +88,47 @@ class Input
             Vector2D RStickPos;
             Vector2D PointerPos;
 
-            Vector3D Acceleration;
+            Vector3D Angle;
+            Vector3D Accelerometer;
             float AccMagnitude;
             float AccVariation;
 
-            Vector3D Angle;
-
             union
             {
-                struct Wii
+                struct
                 {
-                    uint8_t Extension;
+                    Vector2D StickPos;
+                    Vector3D Accelerometer;
+    
+                    float AccMagnitude;
+                    float AccVariation;
+                } Nunchuk;
 
-                    union
-                    {
-                        struct Nunchuk
-                        {
-                            Vector2D StickPos;
-                            Vector3D Accelerometer;
+                struct
+                {
+                    float AnalogTriggerL;
+                    float AnalogTriggerR;
+                } Classic;
 
-                            float AccMagnitude;
-                            float AccVariation;
-                        };
-
-                        struct  Classic
-                        {
-                            float AnalogTriggerL;
-                            float AnalogTriggerR;
-                        };
-                    };
-                    
-                };
-
-                struct Drc
+                struct
                 {
                     bool Touched;
+                    bool Headphones;
+
+                    Vector2D AccVertical;
                     Vector3D Magnetometer;
-                };
+                    Vector3D Gyroscope;
+
+                    uint8_t Volume;
+                    uint8_t BatteryLvl;
+                    uint8_t MicStatus;
+                } DRC;
                     
-                struct Pro
+                struct
                 {
                     int32_t Charging;
                     int32_t Wired;
-                };       
+                } Pro;       
             };   
         };   
 
