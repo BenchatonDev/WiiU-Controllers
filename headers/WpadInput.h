@@ -1,39 +1,41 @@
 #pragma once
 
-#include <vpad/input.h>
+#include <padscore/kpad.h>
+#include <padscore/wpad.h>
 #include "input.h"
 
-class VpadInput : public Input
+class WpadInput : public Input
 {
     private:
-        VPADStatus Status;
-        VPADReadError Error;
+        KPADChan Channel;
+        KPADStatus Status;
+        KPADError Error;
         Vector2D TouchRes;
 
     public: 
 
         //Constructor
-        VpadInput(int x, int y)
+        WpadInput(int x, int y, KPADChan Channel)
         {
-            memset(&Status, 0, sizeof(Status));
+            this->Channel = Channel;
             TouchRes.x = x; TouchRes.y = y;
         };
 
         //Destructor
-        ~VpadInput() override = default;
+        ~WpadInput() override {};
 
         //Updates the VPADStatus & more
         bool Update()
         {
-            VPADRead(VPAD_CHAN_0, &Status, 1, &Error);
+            KPADReadEx(Channel, &Status, 1, &Error);
             switch (Error) {
                 //No errors continue as normal
-                case VPAD_READ_SUCCESS: {
+                case KPAD_ERROR_OK: {
                     Data.Connected = true;
                     break;
                 }
                 //No controller on the channel / lost connection
-                case VPAD_READ_INVALID_CONTROLLER: {
+                case KPAD_ERROR_INVALID_CONTROLLER: {
                     Data.Connected = false;
                     return false;
                 }
