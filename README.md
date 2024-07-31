@@ -15,5 +15,6 @@ accelerometer, etc
  - Make a header to allow specific controller channels to be merge and output a single input object
 
 # Credits
-- [DevkitPro](https://github.com/devkitPro) They are awsome peeps, without them most Nintendo homebrew wouldn't exist
+- [DevkitPro](https://github.com/devkitPro) They are awsome peeps ❤️, without them most Nintendo homebrew wouldn't exist
 - [Dimok](https://github.com/dimok789) For making VPADInput.h and WPADInput.h which served as a basis
+- [rolandoislas](https://github.com/rolandoislas) From which I stole DRC sim icon
