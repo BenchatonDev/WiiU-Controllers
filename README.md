@@ -7,7 +7,7 @@
 
 # What is it ?
 This is a Controller API for the Wii U game console aiming to simplify the use of the wiiu's native libraries
-which as of now, it's basicly Dimok's VPADInput.h and WPADInput.h with access to more controller data, like gyro
+which as of now, it's basicly Dimok's VPADInput.h and WPADInput.h with access to more controller data, like gyro,
 accelerometer, etc
 
 # Stuff Planned 
