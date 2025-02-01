@@ -3,21 +3,29 @@
 // Standard Include
 #include <cstdint>
 #include <cstring>
-#include <time.h>
+#include <algorithm>
 #include <vector>
 
-// Wut Pads Include
+// Wut / Pads Include
 #include <vpad/input.h>
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
+#include <coreinit/thread.h>
+#include <coreinit/time.h>
 
 // Controller Headers Include
 #include "Controllers/Controller.h"
 #include "Controllers/KpadInput.h"
 #include "Controllers/VpadInput.h"
+#include "Controllers/MergedInput.h"
 
 // Main Controller / Input Source List
 std::vector<Controller*> Controllers;
+
+// List of Merged Inputs, The purpose
+// of this list is to store all the merged
+// input source and allow them to be destroyed
+std::vector<MergedInput*> MergedInputs;
 
 // Unused Controller / Input Source List for i.e
 // Controllers that can't be used in the current config
@@ -94,6 +102,8 @@ void ControllersInit(bool EnabledContollerTypes[3], int Width, int Height, bool 
         }
     }
 
+    // I don't know how the Balance board handles things so it's disabled by default
+    WPADEnableWBC(false);
 
     // Disable specified controller types
     if ( !EnabledContollerTypes[0] ) { MoveToUnused(0); }   //Disables DRC
@@ -102,37 +112,143 @@ void ControllersInit(bool EnabledContollerTypes[3], int Width, int Height, bool 
     if ( !EnabledContollerTypes[2] ) { EnableWII(false); }  //Disables WII (and it's extensions ?)
 };
 
-
 /**
  * Quits the WiiU's controller libs
  * and clears input source lists
 */
 void ControllersQuit() {
     KPADShutdown();
-    Controllers.clear();
-    UnusedControllers.clear();
+    Controllers.~vector();
+    MergedInputs.~vector();
+    UnusedControllers.~vector();
 };
+
+/**
+ * Creates a new input that will occupy the place of the
+ * Input with the index closest to 0 in the list of indexes
+ * to be used merged into that new input source
+ * \param Indexes Vector containing the indexes of the
+ * controllers to be merged
+*/
+bool CreateMergedInput(const std::vector<int>& Indexes) {
+    if (Indexes.empty()) { return false; };
+
+    MergedInput* NewMerged;
+    NewMerged->Data.ControllerType = TYPE_MERGED;
+
+    for (int i : Indexes) {
+        if (Controllers[i] == nullptr || 
+            NewMerged->Data.ControllerType == TYPE_MERGED)
+            { continue; }
+        
+        MoveToUnused(i);
+        NewMerged->Indexes.push_back(i);
+        NewMerged->MergeSource.push_back(UnusedControllers[i]);
+    }
+
+    if (NewMerged->MergeSource.empty()) { return false; };
+    if (NewMerged->MergeSource.size() == 1) { MoveToUsed(NewMerged->Indexes[0]); return false; };
+
+    int ControllerIndex = *std::min_element(NewMerged->Indexes.begin(), NewMerged->Indexes.end());
+
+    Controllers[ControllerIndex] = NewMerged;
+    NewMerged->Data.MERGED.MergedIndex = MergedInputs.size() + 1;
+    MergedInputs.push_back(NewMerged);
+
+    return true;
+}
+
+/**
+ * Function to destroy a merged input source and places
+ * it's merging sources back in the Controllers vector
+ * \param Index The Index of the merged input source to Destroy
+*/
+bool DestroyMergedInput(int Index) {
+    if (MergedInputs[Index] == nullptr) { return false; };
+
+    for (int i : MergedInputs[Index]->Indexes) {
+        MoveToUsed(i);
+    }
+
+    MergedInputs[Index]->Indexes.~vector();
+    MergedInputs[Index]->MergeSource.~vector();
+    MergedInputs[Index]->~MergedInput();
+    MergedInputs[Index] = nullptr;
+
+    return true;
+}
+
+/**
+ * Simple Macro that destroys all the merged input sources
+*/
+#define DestroyAllMergedInputs() \
+{ for (int i = 0; i < MergedInputs.size(); i++) { DestroyMergedInput(i); }; }
+
+/**
+ * Grabs the latest input data from all the controllers
+*/
+void ControllersUpdate() {
+    for (int i = 0; i < 7; i++) {
+        if (Controllers[i] == nullptr) { continue; };
+        Controllers[i]->Update();
+    }
+};
+
+/**
+ * Macro to rumble the DRC, it allows for finer control compared
+ * to the universal function but is DRC only, doesn't rumble if the
+ * DRC is diabled or merged with another controller / input source
+ * \param Patern An array of uint8_t ranging from 0x00 to 0xFF
+*/
+#define RumbleDRC(Patern) \
+{ if (Controllers[0] != nullptr && Controllers[0]->Data.ControllerType == TYPE_DRC) \
+{ VPADControlMotor(VPAD_CHAN_0, Patern, sizeof(Patern)); }; }
 
 /**
  * Universal Rumble Function, Note that it can only use on or
  * off states, this is to be compatible with all controller types
- * the DRC allows for finer controls so for that use
- * ``RumbleDRC(Patern, Time);``
+ * the DRC allows for finer controls so for that use the
+ * ``RumbleDRC(Patern)`` macro
  * \param Controller The Index of the controller to rumble
  * \param Patern An array of on and off states to play as a rumble
- * \param Time The Delay between each step of the patern
 */
-void RumbleController(int Controller, bool *patern, int Time) {
+void RumbleController(int Controller, bool *Patern) {
+    // If the controller is not enabled why bother ?
     if (Controllers[Controller] == nullptr) { return; }
 
+    // Bool Patern to simple DRC patern macro
+    #define PATERN_TO_DRC_PATERN(SrcPatern, DestPatern) \
+    { for (size_t i = 0; i < sizeof(SrcPatern) / sizeof(SrcPatern[0]); ++i) { \
+        if (SrcPatern[i] == 0) { DestPatern[i] = 0x00; } \
+        else { DestPatern[i] = 0xFF; } \
+    } }
+
+    // If the controller is the DRC
     if (Controllers[Controller]->Data.ControllerType == TYPE_DRC) {
-        for (int i = 0; i < sizeof(patern); i++) {
-            if (patern[i]) {
-                WPADControlMotor(Controller, WPAD_MOTOR_BOTH, WPAD_MOTOR_RUMBLE);
-            } else {
-                WPADControlMotor(Controller, WPAD_MOTOR_BOTH, WPAD_MOTOR_STOP);
-            }
-            sleep(Time);
-        }
+        uint8_t VpadPatern[sizeof(Patern)];
+        PATERN_TO_DRC_PATERN(Patern, VpadPatern);
+        RumbleDRC(VpadPatern);
+        return;
     }
+
+    if (Controllers[Controller]->Data.ControllerType == TYPE_MERGED) {
+        #define INPUTS MergedInputs[Controllers[Controller]->Data.MERGED.MergedIndex]
+        for (int i : INPUTS->Indexes) {
+            if (UnusedControllers[i]->Data.ControllerType == TYPE_DRC) {
+                uint8_t VpadPatern[sizeof(Patern)];
+                PATERN_TO_DRC_PATERN(Patern, VpadPatern);
+                RumbleDRC(VpadPatern);
+            } else { continue; };
+            // Same as bellow I don't know how to implement if for
+            // all controller types so It's blank for now 
+            return;
+        };
+
+        #undef INPUTS
+        return;
+    }
+
+    #undef PATERN_TO_DRC_PATERN
+    // In any other case I don't yet know how to implement
+    // that correctly, so I'll just leave it as is for now
 };

@@ -24,6 +24,8 @@ class VpadInput : public Controller
         //Destructor
         ~VpadInput() override = default;
 
+        
+
         //Updates the VPADStatus & more
         bool Update()
         {

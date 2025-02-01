@@ -76,6 +76,8 @@ class Controller
 
         KPADChan Channel;
 
+        virtual bool Update();
+
         // Sruct containing the controller data
         typedef struct ControllerData
         {
@@ -105,13 +107,13 @@ class Controller
     
                     float AccMagnitude;
                     float AccVariation;
-                } Nunchuk;
+                } NUNCHUK;
 
                 struct
                 {
                     float AnalogTriggerL;
                     float AnalogTriggerR;
-                } Classic;
+                } CLASSIC;
 
                 struct
                 {
@@ -131,7 +133,14 @@ class Controller
                 {
                     int32_t Charging;
                     int32_t Wired;
-                } Pro;       
+                } PRO; 
+                #ifdef __has_include("MergedInput.h")
+                struct
+                {
+                    int MergedIndex;
+                } MERGED;
+                #endif
+                    
             };   
         };   
 

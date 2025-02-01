@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Controller.h"
+#include <vector>
 
-class CombinedInput : public Controller {
-    public:
+class MergedInput : public Controller {
+    private:
         void combine(const Controller &b) {
             Data.BtnHeld |= b.Data.BtnHeld;
         }
@@ -19,4 +20,25 @@ class CombinedInput : public Controller {
             Data.BtnDown = 0;
             Data.BtnReleased = 0;
         }
+
+    public:
+        // TODO -> Make more of the Data from
+        // the merged controllers accessible
+        std::vector<int> Indexes;
+        std::vector<Controller*> MergeSource;
+
+        bool Update() {
+            reset();
+
+            for (int i; i < MergeSource.size(); i++) {
+                if (MergeSource[i] != nullptr) {
+                    MergeSource[i]->Update();
+                    combine(*MergeSource[i]);
+                }
+            }
+
+            process();
+
+            return true;
+        };
 };

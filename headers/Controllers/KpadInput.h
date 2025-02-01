@@ -232,15 +232,10 @@ class KpadInput : public Controller
         {
             this->Channel = Channel;
             this->Width = Width; this->Height = Height;
-
-            WPADEnableWBC(false);
         };
 
         //Destructor
         ~KpadInput() override {};
-
-        // Pad's channel
-        KPADChan Channel;
 
         //Updates the VPADStatus & more
         bool Update()
@@ -285,12 +280,12 @@ class KpadInput : public Controller
                 if (Status.extensionType == WPAD_EXT_NUNCHUK) {
                     Data.ControllerType = TYPE_NUNCHUK;
 
-                    Data.Nunchuk.Accelerometer.x = Status.nunchuk.acc.x;
-                    Data.Nunchuk.Accelerometer.y = Status.nunchuk.acc.y;
-                    Data.Nunchuk.Accelerometer.z = Status.nunchuk.acc.z;
+                    Data.NUNCHUK.Accelerometer.x = Status.nunchuk.acc.x;
+                    Data.NUNCHUK.Accelerometer.y = Status.nunchuk.acc.y;
+                    Data.NUNCHUK.Accelerometer.z = Status.nunchuk.acc.z;
 
-                    Data.Nunchuk.AccMagnitude = Status.nunchuk.accMagnitude;
-                    Data.Nunchuk.AccVariation = Status.nunchuk.accVariation;
+                    Data.NUNCHUK.AccMagnitude = Status.nunchuk.accMagnitude;
+                    Data.NUNCHUK.AccVariation = Status.nunchuk.accVariation;
                 }
 
             } else if (Status.extensionType == WPAD_EXT_CLASSIC) {
@@ -306,8 +301,8 @@ class KpadInput : public Controller
                 Data.RStickPos.x = Status.classic.rightStick.x;
                 Data.RStickPos.y = Status.classic.rightStick.y;
 
-                Data.Classic.AnalogTriggerL = Status.classic.leftTrigger;
-                Data.Classic.AnalogTriggerR = Status.classic.rightTrigger;
+                Data.CLASSIC.AnalogTriggerL = Status.classic.leftTrigger;
+                Data.CLASSIC.AnalogTriggerR = Status.classic.rightTrigger;
                 
             } else {
                 Data.ControllerType = TYPE_PRO;
@@ -322,8 +317,8 @@ class KpadInput : public Controller
                 Data.RStickPos.x = Status.pro.rightStick.x;
                 Data.RStickPos.y = Status.pro.rightStick.y;
 
-                Data.Pro.Charging = Status.pro.charging;
-                Data.Pro.Wired = Status.pro.wired;
+                Data.PRO.Charging = Status.pro.charging;
+                Data.PRO.Wired = Status.pro.wired;
             }
 
             Data.ValidPointerPos = (Status.posValid == 1 || Status.posValid == 2) &&
