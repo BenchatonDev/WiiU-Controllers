@@ -233,6 +233,8 @@ class KpadInput : public Controller
         {
             this->Channel = Channel;
             this->Width = Width; this->Height = Height;
+
+            WPADEnableWBC(false);
         };
 
         //Destructor
