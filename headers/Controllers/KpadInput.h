@@ -7,7 +7,6 @@
 class KpadInput : public Controller
 {
     private:
-        KPADChan Channel;
         KPADStatus Status;
         KPADError Error;
         int Width;
@@ -240,6 +239,8 @@ class KpadInput : public Controller
         //Destructor
         ~KpadInput() override {};
 
+        // Pad's channel
+        KPADChan Channel;
 
         //Updates the VPADStatus & more
         bool Update()
