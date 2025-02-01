@@ -2,7 +2,7 @@
 
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
-#include "input.h"
+#include "Input.h"
 
 class KpadInput : public Input
 {

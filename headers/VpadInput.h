@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vpad/input.h>
-#include "input.h"
+#include "Input.h"
 
 class VpadInput : public Input
 {
