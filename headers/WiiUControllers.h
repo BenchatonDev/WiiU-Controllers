@@ -3,8 +3,8 @@
 // Standard Include
 #include <cstdint>
 #include <cstring>
+#include <time.h>
 #include <vector>
-#include <array>
 
 // Wut Pads Include
 #include <vpad/input.h>
@@ -49,7 +49,6 @@ std::vector<Controller*> UnusedControllers;
 #define CONTROLLER_7 = 6
 #define CONTROLLER_8 = 7
 
-// Init Function
 /**
  * Inits the WiiU's contoller libs, and creates input soures
  * for all the specified controller types and number (4 or 8).
@@ -65,7 +64,6 @@ std::vector<Controller*> UnusedControllers;
 */
 void ControllersInit(bool EnabledContollerTypes[3], int Width, int Height, bool maxControllers) {
     KPADInit();
-    VPADInit();
 
     VpadInput VpadInputs = {Width, Height};
 
@@ -102,4 +100,39 @@ void ControllersInit(bool EnabledContollerTypes[3], int Width, int Height, bool 
     if ( !EnabledContollerTypes[1] ) { EnablePRO(false); }  //Disables PRO
     else                             { EnablePRO(true); }   //Enables  PRO (not on by default ?)
     if ( !EnabledContollerTypes[2] ) { EnableWII(false); }  //Disables WII (and it's extensions ?)
+};
+
+
+/**
+ * Quits the WiiU's controller libs
+ * and clears input source lists
+*/
+void ControllersQuit() {
+    KPADShutdown();
+    Controllers.clear();
+    UnusedControllers.clear();
+};
+
+/**
+ * Universal Rumble Function, Note that it can only use on or
+ * off states, this is to be compatible with all controller types
+ * the DRC allows for finer controls so for that use
+ * ``RumbleDRC(Patern, Time);``
+ * \param Controller The Index of the controller to rumble
+ * \param Patern An array of on and off states to play as a rumble
+ * \param Time The Delay between each step of the patern
+*/
+void RumbleController(int Controller, bool *patern, int Time) {
+    if (Controllers[Controller] == nullptr) { return; }
+
+    if (Controllers[Controller]->Data.ControllerType == TYPE_DRC) {
+        for (int i = 0; i < sizeof(patern); i++) {
+            if (patern[i]) {
+                WPADControlMotor(Controller, WPAD_MOTOR_BOTH, WPAD_MOTOR_RUMBLE);
+            } else {
+                WPADControlMotor(Controller, WPAD_MOTOR_BOTH, WPAD_MOTOR_STOP);
+            }
+            sleep(Time);
+        }
+    }
 };
