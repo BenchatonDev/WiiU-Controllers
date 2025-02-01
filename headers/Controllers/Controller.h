@@ -10,6 +10,7 @@ enum ControllerType {
     TYPE_WII     = 2,
     TYPE_NUNCHUK = 3,
     TYPE_CLASSIC = 4,
+    TYPE_MERGED  = 5,
 };
 
 // Buttons Values
