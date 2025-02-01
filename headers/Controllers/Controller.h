@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <cstring>
 
+#include <padscore/wpad.h>
+#include <padscore/kpad.h>
+
 // Controller types
 enum ControllerType {
     TYPE_DRC     = 0,
@@ -70,6 +73,8 @@ class Controller
 
         //Destructor
         virtual ~Controller() = default;
+
+        KPADChan Channel;
 
         // Sruct containing the controller data
         typedef struct ControllerData
